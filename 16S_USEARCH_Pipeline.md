@@ -1,5 +1,5 @@
 # 16S USEARCH pipeline GLBRC
-### Note: this pipeline merges raw fastq sequences from two illumina runs (ignore run 2 code if you’re only working with 1 run)
+### Note: this pipeline merges raw fastq sequences from two Illumina runs (ignore run 2 code if you’re only working with 1 run)
 ### Make sure you are in the folder with the extracted forward and reverse reads from Run 1
 
 ## 1) Quality checking
