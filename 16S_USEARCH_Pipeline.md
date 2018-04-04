@@ -1,5 +1,5 @@
 # 16S USEARCH pipeline GLBRC
-### Note: this pipeline merges raw fastq sequences from two Illumina runs (ignore run 2 code if you’re only working with 1 run)
+### Note: this pipeline merges raw fastq sequences from two illumina runs (ignore run 2 code if you’re only working with 1 run)
 ### Make sure you are in the folder with the extracted forward and reverse reads from Run 1
 
 ## 1) Quality checking
@@ -100,7 +100,7 @@ Additionally, this is a good opportunity to double check that all of your sample
 
 ## 5) Filter so we only have unique sequences with [fastx_uniques](https://www.drive5.com/usearch/manual/cmd_fastx_uniques.html)
 ```
-/mnt/research/rdp/public/thirdParty/usearch10.0.240_i86linux64 -fastx_uniques combined_merged_both_runs_fil.fa  -fastqout uniques_combined_merged_both_runs_fil.fa -sizeout
+/mnt/research/rdp/public/thirdParty/usearch10.0.240_i86linux64 -fastx_uniques combined_merged_both_runs_fil.fa  -fastaout uniques_combined_merged_both_runs_fil.fa -sizeout
 ```
 #### This step takes approximately 2 minutes 30 seconds with ~11 million reads
 
