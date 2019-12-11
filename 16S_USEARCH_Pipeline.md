@@ -16,7 +16,7 @@ nano fasta_info_fq.sh
 !#/bin/bash
 for fq in *.fastq
 do
-/mnt/research/rdp/public/thirdParty/usearch10.0.240_i86linux64 -fastx_info $fq -output fastq_info_run1/$fq
+/mnt/research/rdp/public/thirdParty/usearch11.0.667_i86linux64 -fastx_info $fq -output fastq_info_run1/$fq
 done
 ```
 
@@ -53,7 +53,7 @@ https://www.drive5.com/usearch/manual/merge_options.html
 #### This step takes approximately 1 minute
 ```
 mkdir mergedfastq_run1
-/mnt/research/rdp/public/thirdParty/usearch10.0.240_i86linux64 -fastq_mergepairs *R1*.fastq -relabel @ -fastqout mergedfastq_run1/combined_merged_run1.fastq  -tabbedout mergedfastq_run1/combined_merged_run1_pair_report.txt -alnout mergedfastq_run1/combined_merged_run1_pair_aln.txt
+/mnt/research/rdp/public/thirdParty/usearch11.0.667_i86linux64 -fastq_mergepairs *R1*.fastq -relabel @ -fastqout mergedfastq_run1/combined_merged_run1.fastq  -tabbedout mergedfastq_run1/combined_merged_run1_pair_report.txt -alnout mergedfastq_run1/combined_merged_run1_pair_aln.txt
 ```
 
 If you are getting a low percentage of sequence pair merging (e.g. below 60%), consider trimming the reverse reads See bottom of script (“improving mergepairs”) for script on truncating reverse reads.
@@ -62,7 +62,7 @@ If you are getting a low percentage of sequence pair merging (e.g. below 60%), c
 ### 2b) let's check sequence quality of the merged seqs using USEARCH's [fastq_eestats2](https://www.drive5.com/usearch/manual/cmd_fastq_eestats2.html).
 
 ```
-/mnt/research/rdp/public/thirdParty/usearch10.0.240_i86linux64 -fastq_eestats2 mergedfastq_run1/combined_merged_run1.fastq -output fastq_info/combined_merged_run1_eestats2.txt
+/mnt/research/rdp/public/thirdParty/usearch11.0.667_i86linux64 -fastq_eestats2 mergedfastq_run1/combined_merged_run1.fastq -output fastq_info/combined_merged_run1_eestats2.txt
 ```
 
 ### 2c) Now remove any residual bases from adapter seqs using [cut adapt](http://cutadapt.readthedocs.io/en/stable/index.html)
@@ -88,19 +88,19 @@ Before we continue, you may want to check if the sample names are formatted corr
 Additionally, this is a good opportunity to double check that all of your samples merged and have unique IDs using [fastx_get_sample_names](https://www.drive5.com/usearch/manual/cmd_fastx_get_sample_names.html)
 
 ```
-/mnt/research/rdp/public/thirdParty/usearch10.0.240_i86linux64 -fastx_get_sample_names combined_merged_both_runs.fastq -output combined_merged_both_runs_samples.txt
+/mnt/research/rdp/public/thirdParty/usearch11.0.667_i86linux64 -fastx_get_sample_names combined_merged_both_runs.fastq -output combined_merged_both_runs_samples.txt
 ```
 
 ## 4) Filtering and Truncate the merged seqs  to MaxEE and set length using [fastq_filter](https://www.drive5.com/usearch/manual/cmd_fastq_filter.html)
 
 #### 250 bp is the expected overlaps with 515F and 806R
 ```
-/mnt/research/rdp/public/thirdParty/usearch10.0.240_i86linux64 -fastq_filter combined_merged_both_runs.fastq -fastq_maxee 1 -fastq_trunclen 250 -fastaout combined_merged_both_runs_fil.fa
+/mnt/research/rdp/public/thirdParty/usearch11.0.667_i86linux64 -fastq_filter combined_merged_both_runs.fastq -fastq_maxee 1 -fastq_trunclen 250 -fastaout combined_merged_both_runs_fil.fa
 ```
 
 ## 5) Filter so we only have unique sequences with [fastx_uniques](https://www.drive5.com/usearch/manual/cmd_fastx_uniques.html)
 ```
-/mnt/research/rdp/public/thirdParty/usearch10.0.240_i86linux64 -fastx_uniques combined_merged_both_runs_fil.fa  -fastaout uniques_combined_merged_both_runs_fil.fa -sizeout
+/mnt/research/rdp/public/thirdParty/usearch11.0.667_i86linux64 -fastx_uniques combined_merged_both_runs_fil.fa  -fastaout uniques_combined_merged_both_runs_fil.fa -sizeout
 ```
 #### This step takes approximately 2 minutes 30 seconds with ~11 million reads
 
@@ -111,7 +111,7 @@ There are two options here. **(A)** uses the traditional approach and clusters s
 This step will also denovo chimera check and filter out singletons.You can remove single sequences prior to clustering but singletons are also removed at the OTU clustering step (cluster_otus filters out OTUs <2 and unoise3 filters ZOTUs <8)
 
 ```
-/mnt/research/rdp/public/thirdParty/usearch10.0.240_i86linux64 -cluster_otus uniques_combined_merged_both_runs_fil.fa -otus combined_merged_both_runs_otus.fa -uparseout combined_merged_both_runs_otus_uparse.txt -relabel OTU
+/mnt/research/rdp/public/thirdParty/usearch11.0.667_i86linux64 -cluster_otus uniques_combined_merged_both_runs_fil.fa -otus combined_merged_both_runs_otus.fa -uparseout combined_merged_both_runs_otus_uparse.txt -relabel OTU
 ```
 
 This step takes approximately 30 minutes with ~330,000 unique sequences
@@ -119,7 +119,7 @@ This step takes approximately 30 minutes with ~330,000 unique sequences
 ### 6B) Identify ZOTUs using [unoise3](https://www.drive5.com/usearch/manual/cmd_unoise3.html)
 This step will also denovo chimera check and filter out low abundance ZOTUs (Less than 8 reads)
 ```
-/mnt/research/rdp/public/thirdParty/usearch10.0.240_i86linux64 -unoise3 uniques_combined_merged_both_runs_fil.fa -zotus combined_merged_both_runs_zotus.fa  -tabbedout combined_merged_both_runs_zotus_report.txt
+/mnt/research/rdp/public/thirdParty/usearch11.0.667_i86linux64 -unoise3 uniques_combined_merged_both_runs_fil.fa -zotus combined_merged_both_runs_zotus.fa  -tabbedout combined_merged_both_runs_zotus_report.txt
 ```
 This step takes approximately 30 minutes with ~330,000 unique sequences.
 #### You must rename your representative sequence names from “Zotu” to “ZOTU” for the mapping back to the raw reads step to work correctly
@@ -132,13 +132,13 @@ sed -i 's/Zotu/ZOTU/g' combined_merged_both_runs_zotus.fa
 **-id 0.97 -strand plus are defaults**
 ### 7A) Mapping reads to traditional 0.97 OTUS
 ```
-/mnt/research/rdp/public/thirdParty/usearch10.0.240_i86linux64 -otutab combined_merged_both_runs.fastq -otus combined_merged_both_runs_otus.fa -uc combined_merged_both_runs_OTU_map.uc -otutabout combined_merged_both_runs_OTU_table.txt -biomout combined_merged_both_runs_OTU_jsn.biom -notmatchedfq combined_merged_run2_otu_unmapped.fq
+/mnt/research/rdp/public/thirdParty/usearch11.0.667_i86linux64 -otutab combined_merged_both_runs.fastq -otus combined_merged_both_runs_otus.fa -uc combined_merged_both_runs_OTU_map.uc -otutabout combined_merged_both_runs_OTU_table.txt -biomout combined_merged_both_runs_OTU_jsn.biom -notmatchedfq combined_merged_run2_otu_unmapped.fq
 ```
 This step takes approximately 1 hour 30 minutes with ~30,000 OTUs
 
 ### 7B) Mapping reads to ZOTUs
 ```
-/mnt/research/rdp/public/thirdParty/usearch10.0.240_i86linux64 -otutab combined_merged_both_runs.fastq -zotus combined_merged_both_runs_zotus.fa -uc combined_merged_both_runs_ZOTU_map.uc -otutabout combined_merged_both_runs_ZOTU_table.txt -biomout combined_merged_both_runs_ZOTU_jsn.biom -notmatchedfq combined_merged_run2_ZOTU_unmapped.fq
+/mnt/research/rdp/public/thirdParty/usearch11.0.667_i86linux64 -otutab combined_merged_both_runs.fastq -zotus combined_merged_both_runs_zotus.fa -uc combined_merged_both_runs_ZOTU_map.uc -otutabout combined_merged_both_runs_ZOTU_table.txt -biomout combined_merged_both_runs_ZOTU_jsn.biom -notmatchedfq combined_merged_run2_ZOTU_unmapped.fq
 ```
 This step takes approximately 1 hour with ~31,000 ZOTUs
 
@@ -146,12 +146,12 @@ This step takes approximately 1 hour with ~31,000 ZOTUs
 Currently used database is [silva version 123](https://www.drive5.com/usearch/manual/sintax_downloads.html).
 ### 8A) Classifying the traditional 0.97 OTUs
 ```
-/mnt/research/rdp/public/thirdParty/usearch10.0.240_i86linux64 -sintax combined_merged_both_runs_otus.fa -db silva_16s_v123.fa -tabbedout combined_merged_both_runs_otus_taxonomy.sintax -strand both
+/mnt/research/rdp/public/thirdParty/usearch11.0.667_i86linux64 -sintax combined_merged_both_runs_otus.fa -db silva_16s_v123.fa -tabbedout combined_merged_both_runs_otus_taxonomy.sintax -strand both
 ```
 This step takes approximately  18 hours and 20 minutes with ~30,000 OTUs against the Silva reference database, so you may want to submit a job for it.
 
 ### 8B) Classifying the ZOTUs
 ```
-/mnt/research/rdp/public/thirdParty/usearch10.0.240_i86linux64 -sintax combined_merged_both_runs_zotus.fa -db silva_16s_v123.fa -tabbedout combined_merged_both_runs_zotus_taxonomy.sintax -strand both
+/mnt/research/rdp/public/thirdParty/usearch11.0.667_i86linux64 -sintax combined_merged_both_runs_zotus.fa -db silva_16s_v123.fa -tabbedout combined_merged_both_runs_zotus_taxonomy.sintax -strand both
 ```
 This step takes approximately  19 hours and 13 minutes with ~31,000 ZOTUs against the Silva reference database
