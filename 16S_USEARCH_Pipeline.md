@@ -65,8 +65,9 @@ If you are getting a low percentage of sequence pair merging (e.g. below 60%), c
 /mnt/research/rdp/public/thirdParty/usearch11.0.667_i86linux64 -fastq_eestats2 mergedfastq_run1/combined_merged_run1.fastq -output fastq_info/combined_merged_run1_eestats2.txt
 ```
 
-### 2c) Now remove any residual bases from adapter seqs using [cut adapt](http://cutadapt.readthedocs.io/en/stable/index.html)
+### 2c) Optional Step: Remove any residual bases from adapter seqs using [cut adapt](http://cutadapt.readthedocs.io/en/stable/index.html)
 This code removes the forward adapter of 515F and the reverse complement of 806R. If you’re using the hpcc, load cutadapt.
+This step is optional because the MSU sequnence center removes the primers and adapters for you.
 
 ```
 module load cutadapt/1.8.1
