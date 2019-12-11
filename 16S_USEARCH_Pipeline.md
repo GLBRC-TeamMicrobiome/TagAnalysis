@@ -117,9 +117,9 @@ This step will also denovo chimera check and filter out singletons.You can remov
 This step takes approximately 30 minutes with ~330,000 unique sequences
 
 ### 6B) Identify ZOTUs using [unoise3](https://www.drive5.com/usearch/manual/cmd_unoise3.html)
-This step will also denovo chimera check and filter out low abundance ZOTUs (Less than 8 reads)
+This step will also denovo chimera check and filter out low abundance ZOTUs. IMPORTANT: ZOTUs with less than 3 reads will be filtered out (i.e. -minsize 3) default setting filters out ZOTUs less than 8 reads
 ```
-/mnt/research/rdp/public/thirdParty/usearch11.0.667_i86linux64 -unoise3 uniques_combined_merged_both_runs_fil.fa -zotus combined_merged_both_runs_zotus.fa  -tabbedout combined_merged_both_runs_zotus_report.txt
+/mnt/research/rdp/public/thirdParty/usearch11.0.667_i86linux64 -unoise3 uniques_combined_merged_both_runs_fil.fa -zotus combined_merged_both_runs_zotus.fa  -tabbedout combined_merged_both_runs_zotus_report.txt -minsize 3 
 ```
 This step takes approximately 30 minutes with ~330,000 unique sequences.
 #### You must rename your representative sequence names from “Zotu” to “ZOTU” for the mapping back to the raw reads step to work correctly
@@ -150,8 +150,95 @@ Currently used database is [silva version 123](https://www.drive5.com/usearch/ma
 ```
 This step takes approximately  18 hours and 20 minutes with ~30,000 OTUs against the Silva reference database, so you may want to submit a job for it.
 
+#### 8A.1) Example job submission using [SLURM](https://wiki.hpcc.msu.edu/display/ITH/Job+Scheduling+by+SLURM)
+```
+nano taxa_class_OTU.sbatch
+
+#!/bin/bash --login
+########## SBATCH Lines for Resource Request ##########
+ 
+#SBATCH --time=20:00:00             # limit of wall clock time - how long the job will run (same as -t)
+#SBATCH --nodes=1-2                # number of different nodes - could be an exact number or a range of nodes (same as -N)
+#SBATCH --ntasks=2                  # number of tasks - how many tasks (nodes) that you require (same as -n)
+#SBATCH --cpus-per-task=5           # number of CPUs (or cores) per task (same as -c)
+#SBATCH --mem-per-cpu=20G            # memory required per allocated CPU (or core) - amount of memory (in bytes)
+#SBATCH --job-name   taxa_class_OTU  # you can give your job a name for easier identification (same as -J)
+#SBATCH --mail-type=ALL
+#SBATCH --mail-user=EMAIL@msu.edu
+
+/mnt/research/rdp/public/thirdParty/usearch11.0.667_i86linux64 -sintax combined_merged_both_runs_otus.fa -db silva_16s_v123.fa -tabbedout combined_merged_both_runs_otus_taxonomy.sintax -strand both
+
+###end of .sbatch
+
+sbatch taxa_class_OTU.sbatch
+```
+
 ### 8B) Classifying the ZOTUs
 ```
 /mnt/research/rdp/public/thirdParty/usearch11.0.667_i86linux64 -sintax combined_merged_both_runs_zotus.fa -db silva_16s_v123.fa -tabbedout combined_merged_both_runs_zotus_taxonomy.sintax -strand both
 ```
 This step takes approximately  19 hours and 13 minutes with ~31,000 ZOTUs against the Silva reference database
+
+### 9) Second option for classifying taxonomy of OTUs and ZOTUs using QIIME2 against [GTDB](https://gtdb.ecogenomic.org/downloads)
+It is difficult to format reference databases for use in USEARCH. QIIME2 had a Naive Bayes classifier that is much more flexible.
+You lab must install QIIME2 (https://docs.qiime2.org/2019.10/install/native/) and train the classifer (https://docs.qiime2.org/2019.10/tutorials/feature-classifier/) before running the steps
+
+#### You need to capitalize the codons before you run the classifier
+```
+
+#OTU rep set 
+
+tr '[:lower:]' '[:upper:]'  < combined_merged_both_runs_otus.fa > combined_merged_both_runs_otus_CAP.fa
+ 
+#ZOU rep set
+ tr '[:lower:]' '[:upper:]'  < combined_merged_both_runs_zotus.fa > combined_merged_both_runs_zotus_CAP.fa
+
+```
+
+#### Convert these fasta files to a QIIME [artifacts](https://docs.qiime2.org/2019.10/concepts/#data-files-qiime-2-artifacts)
+
+```
+#start QIIME version which you used to train the classifier
+
+source activate qiime2-2019.4 
+
+#OTU
+qiime tools import --type 'FeatureData[Sequence]' --input-path combined_merged_both_runs_otus_CAP.fa --output-path combined_merged_both_runs_otus.qza
+
+
+#ZOTU
+qiime tools import --type 'FeatureData[Sequence]' --input-path combined_merged_both_runs_zotus_CAP.fa --output-path combined_merged_both_runs_zotus.qza
+```
+
+#### Now you use the Naive Bayes classifier  
+bac120_ar122_ssu_r89_ref_515R-806F_classifier.qza is the trained reference database
+```
+qiime feature-classifier classify-sklearn --i-classifier bac120_ar122_ssu_r89_ref_515R-806F_classifier.qza --i-reads combined_merged_both_runs_otus.qza --o-classification combined_merged_both_runs_otus_GTDBr89_taxonomy.qza 
+
+qiime feature-classifier classify-sklearn --i-classifier bac120_ar122_ssu_r89_ref_515R-806F_classifier.qza --i-reads combined_merged_both_runs_zotus.qza --o-classification combined_merged_both_runs_zotus_GTDBr89_taxonomy.qza 
+```
+
+
+#### Convert the taxa table to tsv 
+
+```
+qiime tools export --input-path combined_merged_both_runs_zotus_GTDBr89_taxonomy.qza --output-path otus_GTDBr89_taxonomy
+
+qiime tools export --input-path combined_merged_both_runs_zotus_GTDBr89_taxonomy.qza --output-path zotus_GTDBr89_taxonomy
+```
+
+
+
+### 10) Optional tree building using [PASTA](https://github.com/smirarab/pasta)
+NOTE: This tree needs to be converted to .nwk format for use in R.
+```
+#modules that you need to load on HPCC
+module load GNU/7.3.0-2.30  OpenMPI/3.1.1
+module load Python/2.7.15
+
+#OTU
+python run_pasta.py -i combined_merged_both_runs_otus.fa -j tree_OTU -o tree_pasta_OTU/
+
+#ZOTU
+python run_pasta.py -i combined_merged_both_runs_zotus.fa -j tree_ZOTU -o tree_pasta_ZOTU/
+```
