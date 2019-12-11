@@ -230,6 +230,7 @@ qiime tools export --input-path combined_merged_both_runs_zotus_GTDBr89_taxonomy
 
 
 ### 10) Optional tree building using [PASTA](https://github.com/smirarab/pasta)
+Your lab must locally install PASTA to run this step.
 NOTE: This tree needs to be converted to .nwk format for use in R.
 ```
 #modules that you need to load on HPCC
