@@ -279,7 +279,7 @@ qhi	 	0-based end position of alignment in query sequence.
 ```
 
 
-## 6) Let's use the [USEARCH primer remover](https://www.drive5.com/usearch/manual/cmd_fastx_trim_primer.html) on the random sequences
+#### Let's use the [USEARCH primer remover](https://www.drive5.com/usearch/manual/cmd_fastx_trim_primer.html) on the random sequences
 For this example, useroutput from -search_oligodb puts primer sequences start at 7-15 bp. This is important for -width parameter though I usually use a larger value to be safe.
 
 
