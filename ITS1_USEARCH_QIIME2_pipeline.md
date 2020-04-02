@@ -1,4 +1,4 @@
-# Pipeline for processing multiplexed sequences aplified by ITS1f to ITS2.
+# Pipeline for processing multiplexed sequences amplified by ITS1f to ITS2.
 
 
 ## 1) Use [demux](https://docs.qiime2.org/2020.2/plugins/available/cutadapt/demux-paired/) in QIIME2 to demultiplex the dataset 
@@ -6,18 +6,19 @@
 
 You first need to created a barcode file in a text editor 
 Use QIIME format 
----
-#SampleID	BarcodeSequence	LinkerPrimerSequence	Description
+
+```
+SampleID	BarcodeSequence	LinkerPrimerSequence	Description
 MMPRNT2002	TACGACTCTG	TTCTTGGTCATTTAGAGGAAGTAA	MMPRNT2002
----
+```
 
 Or use the QIIME2 format 
 
----
+```
 sample-id	barcode-sequence
 #q2:types	categorical
 MMPRNT2002	TACGACTCTG
----
+```
 
 Next, you need to rename your raw sequences before converting them to [QIIME2 artifacts](https://docs.qiime2.org/2020.2/concepts/)
 
@@ -83,16 +84,9 @@ qiime demux summarize  --i-data demultiplexed-seqs.qza  --o-visualization demux-
 conda deactivate
 ```
 
----
-summary
-Minimum:	87
-Median:	143104.5
-Mean:	140706.50520833334
-Maximum:	320018
-Total:	27015649
----
 
-I use the online [QIME2 Viewing](https://view.qiime2.org/) since I cannot get the [qiime tools view](https://docs.qiime2.org/2020.2/tutorials/utilities/) to work on the HPCC
+
+I use the online [QIME2 Viewing](https://view.qiime2.org/) since I cannot get [qiime tools view](https://docs.qiime2.org/2020.2/tutorials/utilities/) to work on the HPCC
 
 
 Now export the demux files in the form of .fastq.gz with individual files for each sample's forward and reverse reads
@@ -155,11 +149,14 @@ grep "^EE" * > run1_fastq_EE.txt
 Look for any forward and reverse reads that look especially bad in terms of quality (high E is bad quality). This info will also be really helpful for troubleshooting later on (e.g. why some samples have extremely low read numbers)
 
 
-##  3) Merge the forward and reverse sequences and trim adapters (for each run individually)
-[-fastq_mergepairs](https://www.drive5.com/usearch/manual/merge_options.html)
+##  3) Merge the forward and reverse sequences with [-fastq_mergepairs](https://www.drive5.com/usearch/manual/merge_options.html) and trim adapters (for each run individually)
+
 Make sure you are in the folder with the extracted forward and reverse reads from Run 1
+
 -alnout gives you a human readable text file of the alignment and misalignments for each pair merged.
+
 -tabbedout give you extensive information on the quality of the merge
+
 This step takes approximately 30 minutes
 
 ```
@@ -218,9 +215,7 @@ Before we continue, you may want to check if the sample names are formatted corr
 Additionally, this is a good opportunity to double check that all of your samples merged and have unique IDs using [fastx_get_sample_names](https://www.drive5.com/usearch/manual/cmd_fastx_get_sample_names.html)
 
 
-
-
-### You can run the USEARCH version of [phix removal](https://www.drive5.com/usearch/manual/cmd_filter_phix.html) here if you think you have phix from the sequencing
+##### You can run the USEARCH version of [phix removal](https://www.drive5.com/usearch/manual/cmd_filter_phix.html) here if you think you have phix from the sequencing
 
 
 
@@ -238,7 +233,6 @@ For this exmaple, 250 bp is within the expected amplification length and >91.7% 
 
 ```
 /mnt/research/rdp/public/thirdParty/usearch11.0.667_i86linux64 -fastq_filter combined_libs_fungi.fastq -fastq_maxee 1 -fastq_minlen 250 -fastaout combined_libs_fungi_filtered.fa
-
 ```
 
 
@@ -272,7 +266,7 @@ Now use [-search_oligodb](https://drive5.com/usearch/manual/cmd_search_oligodb.h
 
 ```
 
----
+```
 Info on the [userfields](https://www.drive5.com/usearch/manual/userfields.html)
 
 query	 	Query sequence label.
@@ -282,7 +276,7 @@ tlo	 	0-based start position of alignment in target sequence.
 thi	 	0-based end position of alignment in target sequence.
 qlo	 	0-based start position of alignment in query sequence.
 qhi	 	0-based end position of alignment in query sequence.
----
+```
 
 
 ## 6) Let's use the [USEARCH primer remover](https://www.drive5.com/usearch/manual/cmd_fastx_trim_primer.html) on the random sequences
